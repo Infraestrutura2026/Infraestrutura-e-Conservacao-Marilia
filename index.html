@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Frota Pro - Controle de Frota</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-truck-moving"></i>
+                <span class="logo-text">Frota Pro</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="menu-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+            <a href="#" class="menu-item" data-screen="veiculos"><i class="fas fa-car"></i><span>Veiculos</span></a>
+            <a href="#" class="menu-item" data-screen="quilometragem"><i class="fas fa-tachometer-alt"></i><span>Quilometragem</span></a>
+            <a href="#" class="menu-item" data-screen="abastecimento"><i class="fas fa-gas-pump"></i><span>Abastecimento</span></a>
+            <a href="#" class="menu-item" data-screen="manutencao"><i class="fas fa-tools"></i><span>Manutencao</span></a>
+            <a href="#" class="menu-item" data-screen="cronograma"><i class="fas fa-calendar-alt"></i><span>Cronograma</span></a>
+            <a href="#" class="menu-item" data-screen="relatorios"><i class="fas fa-file-alt"></i><span>Relatorios</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="app-version">v2.0 - Google Sheets</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="menu-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <div class="top-bar-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar veiculo, manutencao..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+            </div>
+        </header>
+
+        <!-- Screens -->
+        <div class="content-area">
+            <!-- DASHBOARD -->
+            <div class="screen active" id="screen-dashboard">
+                <div class="dashboard-stats">
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-car"></i></div><div class="stat-info"><div class="stat-value" id="totalVeiculos">0</div><div class="stat-label">Total Veiculos</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(0,200,83,0.15);color:#00c853;"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="stat-value" id="veiculosAtivos">0</div><div class="stat-label">Ativos</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(255,171,0,0.15);color:#ffab00;"><i class="fas fa-ban"></i></div><div class="stat-info"><div class="stat-value" id="veiculosInativos">0</div><div class="stat-label">Inativos</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(255,61,0,0.15);color:#ff3d00;"><i class="fas fa-wrench"></i></div><div class="stat-info"><div class="stat-value" id="emManutencao">0</div><div class="stat-label">Em Manutencao</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(41,98,255,0.15);color:#2962ff;"><i class="fas fa-road"></i></div><div class="stat-info"><div class="stat-value" id="kmRodadoMes">0 km</div><div class="stat-label">KM Mes</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(0,200,83,0.15);color:#00c853;"><i class="fas fa-gas-pump"></i></div><div class="stat-info"><div class="stat-value" id="consumoMedio">R$ 0,00/L</div><div class="stat-label">Media Combustivel</div></div></div>
+                    <div class="stat-card"><div class="stat-icon" style="background:rgba(255,61,0,0.15);color:#ff3d00;"><i class="fas fa-dollar-sign"></i></div><div class="stat-info"><div class="stat-value" id="custoManutencao">R$ 0,00</div><div class="stat-label">Custo Manutencao</div></div></div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card"><div class="card-header"><h3><i class="fas fa-bell"></i> Alertas</h3></div><div class="alertas-list" id="alertasList"></div></div>
+                    <div class="dashboard-card"><div class="card-header"><h3><i class="fas fa-chart-bar"></i> Custos Mensais</h3></div><div class="chart-container"><canvas id="chartCustoMensal"></canvas></div></div>
+                    <div class="dashboard-card"><div class="card-header"><h3><i class="fas fa-chart-pie"></i> Status da Frota</h3></div><div class="chart-container"><canvas id="chartStatusVeiculos"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- VEICULOS -->
+            <div class="screen" id="screen-veiculos">
+                <div class="screen-header">
+                    <div class="filter-group"><input type="text" id="filtroVeiculos" placeholder="Buscar veiculo..." oninput="App.renderVeiculos()"></div>
+                    <button class="btn btn-primary" data-modal="modal-veiculo"><i class="fas fa-plus"></i> Novo Veiculo</button>
+                </div>
+                <div class="veiculos-grid" id="veiculosGrid"></div>
+            </div>
+
+            <!-- QUILOMETRAGEM -->
+            <div class="screen" id="screen-quilometragem">
+                <div class="screen-header">
+                    <h2>Registro de Quilometragem</h2>
+                    <button class="btn btn-primary" data-modal="modal-quilometragem"><i class="fas fa-plus"></i> Novo Registro</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>Data/Hora</th><th>Veiculo</th><th>Motorista</th><th>KM</th><th>Observacao</th><th>Acoes</th></tr></thead>
+                        <tbody id="quilometragemTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABASTECIMENTO -->
+            <div class="screen" id="screen-abastecimento">
+                <div class="screen-header">
+                    <h2>Abastecimento</h2>
+                    <button class="btn btn-primary" data-modal="modal-abastecimento"><i class="fas fa-plus"></i> Novo Abastecimento</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>Data</th><th>Veiculo</th><th>Litros</th><th>Valor Total</th><th>Valor/Litro</th><th>KM</th><th>Acoes</th></tr></thead>
+                        <tbody id="abastecimentoTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MANUTENCAO -->
+            <div class="screen" id="screen-manutencao">
+                <div class="screen-header">
+                    <h2>Manutencao</h2>
+                    <button class="btn btn-primary" data-modal="modal-manutencao"><i class="fas fa-plus"></i> Nova Manutencao</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>Data</th><th>Veiculo</th><th>Tipo</th><th>Servico</th><th>Custo</th><th>Status</th><th>Acoes</th></tr></thead>
+                        <tbody id="manutencaoTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CRONOGRAMA -->
+            <div class="screen" id="screen-cronograma">
+                <div class="screen-header">
+                    <h2>Cronograma Preventivo</h2>
+                    <button class="btn btn-primary" data-modal="modal-cronograma"><i class="fas fa-plus"></i> Novo Agendamento</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>Data</th><th>Veiculo</th><th>Servico</th><th>KM Estimada</th><th>Custo Estimado</th><th>Status</th><th>Acoes</th></tr></thead>
+                        <tbody id="cronogramaTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RELATORIOS -->
+            <div class="screen" id="screen-relatorios">
+                <div class="screen-header"><h2>Relatorios e Analises</h2></div>
+                <div class="relatorio-filtros">
+                    <select id="filtroRelatorioVeiculo"><option value="">Todos os veiculos</option></select>
+                    <input type="date" id="filtroDataInicio">
+                    <input type="date" id="filtroDataFim">
+                    <button class="btn btn-primary" onclick="App.renderRelatorioTable()"><i class="fas fa-filter"></i> Filtrar</button>
+                    <button class="btn btn-success" onclick="App.exportRelatorio()"><i class="fas fa-download"></i> Exportar CSV</button>
+                </div>
+                <div class="relatorio-resumo">
+                    <div class="resumo-card"><div class="resumo-label">Total Litros</div><div class="resumo-value" id="relatorioTotalLitros">0 L</div></div>
+                    <div class="resumo-card"><div class="resumo-label">Total Gasto</div><div class="resumo-value" id="relatorioTotalValor">R$ 0,00</div></div>
+                </div>
+                <div class="dashboard-grid" style="margin-top:20px;">
+                    <div class="dashboard-card"><div class="card-header"><h3>Custo por Veiculo</h3></div><div class="chart-container"><canvas id="chartCustoPorVeiculo"></canvas></div></div>
+                    <div class="dashboard-card"><div class="card-header"><h3>Consumo Medio (R$/L)</h3></div><div class="chart-container"><canvas id="chartConsumoPorVeiculo"></canvas></div></div>
+                </div>
+                <div class="table-container" style="margin-top:20px;">
+                    <table class="data-table">
+                        <thead><tr><th>Data</th><th>Veiculo</th><th>Litros</th><th>Valor Total</th><th>Valor/Litro</th><th>KM</th></tr></thead>
+                        <tbody id="relatorioTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL VEICULO -->
+    <div class="modal-overlay" id="modal-veiculo">
+        <div class="modal">
+            <div class="modal-header"><h3><i class="fas fa-car"></i> <span class="modal-title-text">Novo Veiculo</span></h3><button class="close-modal"><i class="fas fa-times"></i></button></div>
+            <form id="formVeiculo">
+                <div class="form-grid">
+                    <div class="form-group"><label>Grupo *</label><select name="grupo" required><option value="">Selecione</option><option value="Operacional">Operacional</option><option value="Administrativo">Administrativo</option><option value="Vendas">Vendas</option><option value="Diretoria">Diretoria</option><option value="Logistica">Logistica</option></select></div>
+                    <div class="form-group"><label>Placa *</label><input type="text" name="placa" placeholder="ABC1D23" required maxlength="8"></div>
+                    <div class="form-group"><label>Marca *</label><input type="text" name="marca" placeholder="Marca" required></div>
+                    <div class="form-group"><label>Modelo *</label><input type="text" name="modelo" placeholder="Modelo" required></div>
+                    <div class="form-group"><label>Ano *</label><input type="number" name="ano" placeholder="2024" required min="1900" max="2100"></div>
+                    <div class="form-group"><label>Combustivel *</label><select name="combustivel" required><option value="">Selecione</option><option value="Gasolina">Gasolina</option><option value="Etanol">Etanol</option><option value="Diesel">Diesel</option><option value="Flex">Flex</option><option value="Eletrico">Eletrico</option><option value="Hibrido">Hibrido</option></select></div>
+                    <div class="form-group"><label>Venc. Seguro</label><input type="date" name="vencSeguro"></div>
+                    <div class="form-group"><label>Venc. Licenciamento</label><input type="date" name="vencLicenciamento"></div>
+                    <div class="form-group"><label>Origem</label><select name="origem"><option value="Proprio">Proprio</option><option value="Alugado">Alugado</option><option value="Leasing">Leasing</option><option value="Terceiro">Terceiro</option></select></div>
+                    <div class="form-group"><label>Status *</label><select name="status" required><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option><option value="Em Manutencao">Em Manutencao</option></select></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL QUILOMETRAGEM -->
+    <div class="modal-overlay" id="modal-quilometragem">
+        <div class="modal">
+            <div class="modal-header"><h3><i class="fas fa-tachometer-alt"></i> Registro de Quilometragem</h3><button class="close-modal"><i class="fas fa-times"></i></button></div>
+            <form id="formQuilometragem">
+                <div class="form-grid">
+                    <div class="form-group"><label>Data *</label><input type="date" name="data" required></div>
+                    <div class="form-group"><label>Hora</label><input type="time" name="hora"></div>
+                    <div class="form-group"><label>Veiculo *</label><select name="veiculoId" required onchange="App.fillQuilometragemFromVeiculo(this)"><option value="">Selecione</option></select></div>
+                    <div class="form-group"><label>Grupo</label><input type="text" name="grupo" readonly></div>
+                    <div class="form-group"><label>Placa</label><input type="text" name="placa" readonly></div>
+                    <div class="form-group"><label>Motorista *</label><input type="text" name="motorista" required></div>
+                    <div class="form-group"><label>KM Atual *</label><input type="number" name="kmAtual" required min="0"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Observacoes</label><textarea name="obs" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ABASTECIMENTO -->
+    <div class="modal-overlay" id="modal-abastecimento">
+        <div class="modal">
+            <div class="modal-header"><h3><i class="fas fa-gas-pump"></i> Abastecimento</h3><button class="close-modal"><i class="fas fa-times"></i></button></div>
+            <form id="formAbastecimento">
+                <div class="form-grid">
+                    <div class="form-group"><label>Data *</label><input type="date" name="data" required></div>
+                    <div class="form-group"><label>Veiculo *</label><select name="veiculoId" required onchange="App.fillAbastecimentoFromVeiculo(this)"><option value="">Selecione</option></select></div>
+                    <div class="form-group"><label>Combustivel</label><input type="text" name="combustivel" readonly></div>
+                    <div class="form-group"><label>Litros *</label><input type="number" name="litros" step="0.001" required min="0" oninput="App.calcValorLitro(this)"></div>
+                    <div class="form-group"><label>Valor Total (R$) *</label><input type="number" name="valorTotal" step="0.01" required min="0" oninput="App.calcValorLitro(this)"></div>
+                    <div class="form-group"><label>Valor/Litro (R$)</label><input type="number" name="valorLitro" step="0.001" readonly></div>
+                    <div class="form-group"><label>KM Atual *</label><input type="number" name="kmAtual" required min="0"></div>
+                    <div class="form-group"><label>Posto</label><input type="text" name="posto" placeholder="Nome do posto"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL MANUTENCAO -->
+    <div class="modal-overlay" id="modal-manutencao">
+        <div class="modal">
+            <div class="modal-header"><h3><i class="fas fa-tools"></i> Manutencao</h3><button class="close-modal"><i class="fas fa-times"></i></button></div>
+            <form id="formManutencao">
+                <div class="form-grid">
+                    <div class="form-group"><label>Data *</label><input type="date" name="data" required></div>
+                    <div class="form-group"><label>Veiculo *</label><select name="veiculoId" required><option value="">Selecione</option></select></div>
+                    <div class="form-group"><label>Tipo *</label><select name="tipo" required><option value="">Selecione</option><option value="Preventiva">Preventiva</option><option value="Corretiva">Corretiva</option><option value="Revisao">Revisao</option><option value="Pneus">Pneus</option><option value="Lataria">Lataria</option><option value="Eletrica">Eletrica</option><option value="Outros">Outros</option></select></div>
+                    <div class="form-group"><label>Servico *</label><input type="text" name="servico" placeholder="Descricao do servico" required></div>
+                    <div class="form-group"><label>Custo (R$) *</label><input type="number" name="custo" step="0.01" required min="0"></div>
+                    <div class="form-group"><label>KM Manutencao</label><input type="number" name="kmManutencao" min="0"></div>
+                    <div class="form-group"><label>Status *</label><select name="status" required><option value="Pendente">Pendente</option><option value="Em Andamento">Em Andamento</option><option value="Concluido">Concluido</option><option value="Cancelado">Cancelado</option></select></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Descricao Detalhada</label><textarea name="descricao" rows="3"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CRONOGRAMA -->
+    <div class="modal-overlay" id="modal-cronograma">
+        <div class="modal">
+            <div class="modal-header"><h3><i class="fas fa-calendar-alt"></i> Cronograma Preventivo</h3><button class="close-modal"><i class="fas fa-times"></i></button></div>
+            <form id="formCronograma">
+                <div class="form-grid">
+                    <div class="form-group"><label>Data *</label><input type="date" name="data" required></div>
+                    <div class="form-group"><label>Veiculo *</label><select name="veiculoId" required><option value="">Selecione</option></select></div>
+                    <div class="form-group"><label>Servico *</label><input type="text" name="servico" placeholder="Ex: Troca de oleo" required></div>
+                    <div class="form-group"><label>KM Estimada</label><input type="number" name="kmEstimada" min="0"></div>
+                    <div class="form-group"><label>Custo Estimado (R$)</label><input type="number" name="custoEstimado" step="0.01" min="0"></div>
+                    <div class="form-group"><label>Prioridade</label><select name="prioridade"><option value="Baixa">Baixa</option><option value="Media" selected>Media</option><option value="Alta">Alta</option><option value="Urgente">Urgente</option></select></div>
+                    <div class="form-group"><label>Status *</label><select name="status" required><option value="Pendente">Pendente</option><option value="Em Andamento">Em Andamento</option><option value="Concluido">Concluido</option><option value="Cancelado">Cancelado</option></select></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+        }
+    </script>
+</body>
+</html>
